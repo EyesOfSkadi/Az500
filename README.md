@@ -47,6 +47,42 @@ Bấm vào hình ảnh bất kỳ để xem phóng to.
   localStorage.removeItem('az500.v1')
   ```
 
+## Sửa đáp án sai (`corrections.js`)
+
+Bộ đề gốc do cộng đồng đóng góp nên có một số câu **đánh dấu sai đáp án**. File
+[`corrections.js`](corrections.js) ghi lại các câu đã kiểm chứng và sửa lại. App tự áp dụng khi
+hiển thị, gắn nhãn `⚠ Đã sửa` và kèm phần ghi chú giải thích. Lọc theo **⚠ Đã sửa đáp án** để
+xem lại tất cả.
+
+Thêm một câu sửa bằng cách chèn một object vào `window.CORRECTIONS`:
+
+```js
+{
+  id: 32,                                    // số câu trong app
+  verify: 'một đoạn ngắn của đề bài',        // chống lệch id khi upstream thêm câu
+  correct: ['đoạn text của lựa chọn đúng'],  // khớp theo chuỗi con, không dùng chỉ số
+  answer: 'đáp án đúng thật sự',             // khi không lựa chọn nào đúng hoàn toàn
+  note: 'giải thích vì sao'                  // hỗ trợ **in đậm** và xuống dòng
+}
+```
+
+Vài điểm về thiết kế:
+
+- Lựa chọn đúng được khớp theo **chuỗi con**, không theo chỉ số, nên không bị lệch nếu upstream
+  đảo thứ tự các phương án.
+- Trường `verify` là cơ chế an toàn: `id` được đánh theo thứ tự xuất hiện trong README gốc, nên
+  nếu upstream chèn thêm câu ở giữa thì id sẽ lệch. Khi `verify` không khớp, app **bỏ qua**
+  correction đó và in cảnh báo ra Console — thà không sửa còn hơn sửa sai câu.
+- `node update-questions.js` cũng kiểm tra lại toàn bộ corrections sau khi tải đề mới và báo
+  ngay câu nào không còn khớp.
+- File này **không** bị ghi đè khi cập nhật đề.
+
+Các câu đã sửa hiện tại:
+
+| Câu | Vấn đề |
+|---|---|
+| #32 | Đáp án gốc chọn phương án có `Global administrator` — vi phạm least privilege, và bỏ mất bước tạo management group. Thực tế không phương án nào đúng hoàn toàn; đã chuyển sang phương án gần đúng nhất kèm ghi chú đáp án đúng. |
+
 ## Cập nhật câu hỏi mới từ nguồn
 
 Repo nguồn thỉnh thoảng được bổ sung/sửa câu hỏi. Để đồng bộ lại (cần Node 18+):
@@ -66,6 +102,7 @@ styles.css            # Theme sáng/tối
 app.js                # Toàn bộ logic (tra cứu, luyện tập, thi thử) — không phụ thuộc thư viện ngoài
 questions-data.js     # Dữ liệu nhúng dạng JS (để chạy được qua file://)
 questions.json        # Cùng dữ liệu, dạng JSON thuần nếu bạn muốn dùng cho việc khác
+corrections.js        # Các câu đã sửa đáp án + ghi chú giải thích
 images/               # 217 hình ảnh minh hoạ
 update-questions.js   # Script đồng bộ lại từ GitHub
 ```

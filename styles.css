@@ -204,6 +204,27 @@ main { max-width: 1080px; margin: 0 auto; padding: 18px 16px 80px; }
 }
 .tag.multi { background: var(--warn-soft); color: var(--warn); font-weight: 600; }
 .tag.lab { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.tag.fixed { background: var(--bad-soft); color: var(--bad); font-weight: 700; }
+
+.fix-note {
+  margin-top: 12px;
+  padding: 11px 14px;
+  border: 1px solid var(--warn);
+  border-left-width: 4px;
+  border-radius: 9px;
+  background: var(--warn-soft);
+  font-size: 14px;
+}
+.fix-note-head { font-weight: 700; color: var(--warn); margin-bottom: 6px; }
+.fix-answer {
+  padding: 7px 10px;
+  margin-bottom: 8px;
+  border-radius: 7px;
+  background: var(--ok-soft);
+  border: 1px solid var(--ok);
+  color: var(--text);
+}
+.answers-hidden .fix-note { display: none; }
 .star {
   border: 0; background: transparent; cursor: pointer; font-size: 16px; padding: 0 2px;
   filter: grayscale(1); opacity: .35;

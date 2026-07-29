@@ -55,6 +55,43 @@
   }
   const norm = (s) => s.toLowerCase();
 
+  /* ---------------- corrections (corrections.js) ----------------
+     Sửa lại các câu bị đánh dấu sai đáp án ở bộ đề gốc. Khớp lựa chọn theo
+     chuỗi con thay vì chỉ số, để không bị lệch nếu upstream đảo thứ tự. */
+  function applyCorrections() {
+    const list = window.CORRECTIONS || [];
+    const warn = [];
+    let applied = 0;
+
+    for (const c of list) {
+      const q = QS.find((x) => x.id === c.id);
+      if (!q) { warn.push(`#${c.id}: không tìm thấy câu hỏi (id lệch?)`); continue; }
+      if (c.verify && !norm(q.question).includes(norm(c.verify))) {
+        warn.push(`#${c.id}: nội dung đề đã thay đổi so với lúc ghi correction — BỎ QUA để tránh sửa sai câu`);
+        continue;
+      }
+      if (Array.isArray(c.correct) && c.correct.length) {
+        const idx = c.correct.map((sn) => q.options.findIndex((o) => norm(o.text).includes(norm(sn))));
+        if (idx.some((i) => i < 0)) {
+          warn.push(`#${c.id}: không khớp được lựa chọn đúng — BỎ QUA`);
+          continue;
+        }
+        q.options.forEach((o, i) => { o.correct = idx.includes(i); });
+        q.correctCount = idx.length;
+        q.multi = idx.length > 1;
+      }
+      q.corrected = true;
+      if (c.note) q.note = c.note;
+      if (c.answer) q.answerText = c.answer;
+      applied++;
+    }
+
+    if (warn.length) console.warn('[corrections] Có vấn đề:\n  ' + warn.join('\n  '));
+    if (applied) console.info(`[corrections] Đã áp dụng ${applied}/${list.length} correction.`);
+    return { applied, warn };
+  }
+  const CORR = applyCorrections();
+
   /* precomputed search index */
   QS.forEach((q) => {
     q._hay = norm(q.question + ' ' + q.options.map((o) => o.text).join(' '));
@@ -80,6 +117,11 @@
     head.appendChild(el('div', 'q-text', highlight(fmt(q.question), terms)));
 
     const tags = el('div', 'q-tags');
+    if (q.corrected) {
+      const t = el('span', 'tag fixed', '⚠ Đã sửa');
+      t.title = 'Đáp án ở bộ đề gốc bị sai và đã được sửa lại — xem ghi chú bên dưới';
+      tags.appendChild(t);
+    }
     if (q.type === 'lab') tags.appendChild(el('span', 'tag lab', 'LAB'));
     else if (q.multi) tags.appendChild(el('span', 'tag multi', `Chọn ${q.correctCount}`));
     const st = stats[q.id];
@@ -120,6 +162,17 @@
       ul.appendChild(li);
     });
     card.appendChild(ul);
+
+    // Ghi chú của correction — chỉ hiện khi đáp án đã được tiết lộ
+    if (q.corrected && (q.note || q.answerText) && mode !== 'interactive') {
+      const note = el('div', 'fix-note');
+      note.appendChild(el('div', 'fix-note-head', '⚠ Ghi chú: đáp án bộ đề gốc bị sai'));
+      if (q.answerText) {
+        note.appendChild(el('div', 'fix-answer', '<b>Đáp án đúng:</b> ' + fmt(q.answerText)));
+      }
+      if (q.note) note.appendChild(el('div', '', fmt(q.note)));
+      card.appendChild(note);
+    }
     return card;
   }
 
@@ -169,6 +222,7 @@
       if (kind === 'multi' && !x.multi) return false;
       if (kind === 'images' && !x.images.length && !x.options.some((o) => o.images.length)) return false;
       if (kind === 'lab' && x.type !== 'lab') return false;
+      if (kind === 'corrected' && !x.corrected) return false;
       if (kind === 'wrong' && !(stats[x.id] && stats[x.id].bad)) return false;
       return terms.every((t) => x._hay.includes(t));
     });

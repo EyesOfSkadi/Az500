@@ -41,6 +41,7 @@ async function main() {
   fs.writeFileSync(path.join(ROOT, 'questions-data.js'), 'window.QUESTION_BANK=' + JSON.stringify(bank) + ';\n');
   console.log('Đã ghi questions.json và questions-data.js.');
 
+  verifyCorrections(questions);
   await downloadImages([...images]);
   console.log('✅ Hoàn tất. Mở index.html để dùng.');
 }
@@ -101,6 +102,46 @@ function parse(md) {
   });
 
   return { questions, images };
+}
+
+/* Kiểm tra corrections.js còn khớp với bộ đề mới hay không. Nếu upstream chèn
+   thêm câu ở giữa thì id sẽ lệch — phải cảnh báo thay vì âm thầm sửa sai câu. */
+function verifyCorrections(questions) {
+  const file = path.join(ROOT, 'corrections.js');
+  if (!fs.existsSync(file)) return;
+  const nz = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+
+  let list;
+  try {
+    const sandbox = { window: {} };
+    new Function('window', fs.readFileSync(file, 'utf8'))(sandbox.window);
+    list = sandbox.window.CORRECTIONS || [];
+  } catch (e) {
+    console.warn('⚠ Không đọc được corrections.js:', e.message);
+    return;
+  }
+  if (!list.length) return;
+
+  const problems = [];
+  for (const c of list) {
+    const q = questions.find((x) => x.id === c.id);
+    if (!q) { problems.push(`#${c.id}: không còn câu hỏi nào có id này`); continue; }
+    if (c.verify && !nz(q.question).includes(nz(c.verify))) {
+      problems.push(`#${c.id}: đề đã thay đổi hoặc id bị lệch — cần kiểm tra lại thủ công`);
+      continue;
+    }
+    if (Array.isArray(c.correct)) {
+      const miss = c.correct.filter((sn) => !q.options.some((o) => nz(o.text).includes(nz(sn))));
+      if (miss.length) problems.push(`#${c.id}: không khớp được lựa chọn đúng (${miss.length} chuỗi)`);
+    }
+  }
+
+  if (problems.length) {
+    console.warn(`⚠ corrections.js: ${problems.length}/${list.length} correction có vấn đề:`);
+    problems.forEach((p) => console.warn('   ' + p));
+  } else {
+    console.log(`corrections.js: cả ${list.length} correction vẫn khớp.`);
+  }
 }
 
 function matchImages(text) {
