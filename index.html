@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AZ-500 Question Bank</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <div class="head-row">
+    <div class="brand">
+      <h1>AZ-500 Question Bank</h1>
+      <span class="badge" id="totalBadge">…</span>
+    </div>
+    <div class="tabs" role="tablist">
+      <button role="tab" id="tab-browse" aria-selected="true">🔍 Tra cứu</button>
+      <button role="tab" id="tab-practice" aria-selected="false">🎯 Luyện tập</button>
+      <button role="tab" id="tab-exam" aria-selected="false">⏱️ Thi thử</button>
+    </div>
+    <button class="icon-btn" id="themeBtn" title="Sáng / Tối">🌙</button>
+  </div>
+
+  <!-- Browse toolbar -->
+  <div class="toolbar" id="browseToolbar">
+    <div class="search-wrap">
+      <span class="mag">🔍</span>
+      <input id="search" type="search" placeholder="Tìm theo nội dung câu hỏi hoặc đáp án… (nhấn /)" autocomplete="off">
+      <button class="clear-x hidden" id="clearSearch" title="Xoá">✕</button>
+    </div>
+    <select class="pill" id="filterSelect">
+      <option value="all">Tất cả câu hỏi</option>
+      <option value="starred">⭐ Đã đánh dấu</option>
+      <option value="multi">Nhiều đáp án</option>
+      <option value="images">Có hình ảnh</option>
+      <option value="lab">Dạng Lab / thao tác</option>
+      <option value="wrong">Từng trả lời sai</option>
+    </select>
+    <button class="pill" id="toggleAnswers" aria-pressed="true">Hiện đáp án</button>
+  </div>
+  <div class="meta-line" id="browseMeta"></div>
+</header>
+
+<main>
+  <!-- ============ BROWSE ============ -->
+  <section id="view-browse">
+    <div id="list"></div>
+    <div class="empty hidden" id="listEmpty">Không tìm thấy câu hỏi nào khớp từ khoá.</div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="pill" id="loadMore">Tải thêm…</button>
+    </div>
+  </section>
+
+  <!-- ============ PRACTICE ============ -->
+  <section id="view-practice" class="hidden">
+    <div class="progress-bar"><div id="pracProgress"></div></div>
+    <div class="meta-line" id="pracStats"></div>
+    <div id="pracCard"></div>
+    <div class="card" style="margin-top:14px">
+      <div class="stat-row">
+        <span>Phím tắt:</span>
+        <span><span class="kbd">1</span>–<span class="kbd">6</span> chọn</span>
+        <span><span class="kbd">Enter</span> kiểm tra / câu tiếp</span>
+        <span><span class="kbd">←</span> <span class="kbd">→</span> chuyển câu</span>
+        <span><span class="kbd">S</span> đánh dấu</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ EXAM ============ -->
+  <section id="view-exam" class="hidden">
+    <div id="examSetup" class="exam-setup card">
+      <h2>⏱️ Thi thử</h2>
+      <p>Bộ câu hỏi được chọn ngẫu nhiên. Đáp án chỉ hiện sau khi nộp bài.</p>
+      <div class="exam-opts">
+        <label>Số câu hỏi
+          <select class="pill" id="examCount">
+            <option value="20">20 câu</option>
+            <option value="40" selected>40 câu</option>
+            <option value="60">60 câu</option>
+            <option value="100">100 câu</option>
+            <option value="308">Toàn bộ</option>
+          </select>
+        </label>
+        <label>Thời gian
+          <select class="pill" id="examTime">
+            <option value="0">Không giới hạn</option>
+            <option value="30">30 phút</option>
+            <option value="60" selected>60 phút</option>
+            <option value="120">120 phút</option>
+          </select>
+        </label>
+        <label>Điểm đạt
+          <select class="pill" id="examPass">
+            <option value="70" selected>70%</option>
+            <option value="60">60%</option>
+            <option value="80">80%</option>
+          </select>
+        </label>
+      </div>
+      <div style="margin-top:22px">
+        <button class="pill primary" id="examStart">Bắt đầu thi</button>
+      </div>
+    </div>
+
+    <div id="examRun" class="hidden">
+      <div class="exam-bar">
+        <span class="timer" id="examTimer">00:00</span>
+        <span id="examProgressText" style="color:var(--text-dim);font-size:13px"></span>
+        <span style="margin-left:auto"></span>
+        <button class="pill" id="examPrev">← Trước</button>
+        <button class="pill" id="examNext">Sau →</button>
+        <button class="pill primary" id="examSubmit">Nộp bài</button>
+      </div>
+      <div class="nav-grid" id="examNav"></div>
+      <div id="examCard"></div>
+    </div>
+
+    <div id="examResult" class="hidden"></div>
+  </section>
+</main>
+
+<footer>
+  Nguồn câu hỏi: <a id="srcLink" href="#" target="_blank" rel="noopener">Ditectrev · AZ-500 Practice Tests (GitHub)</a>.
+  Dữ liệu offline — mọi tiến độ, đánh dấu được lưu trong <code>localStorage</code> của trình duyệt này.
+</footer>
+
+<div id="lightbox" class="hidden"><button class="close">✕</button><img alt=""></div>
+
+<script src="questions-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
