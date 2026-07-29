@@ -54,4 +54,26 @@ window.CORRECTIONS = [
       'Về vận hành, thứ tự gán role trước hay thêm subscription trước đều được, vì RBAC ở scope ' +
       'management group tự kế thừa cho subscription được thêm vào sau.',
   },
+  {
+    id: 46,
+    verify: 'Storage3 can be used as an audit log destination for DB3',
+    correct: ['No.'],
+    answer: 'No.',
+    note:
+      '**Bộ đề gốc đánh dấu sai (chọn Yes). Đáp án đúng 100% phải là No.**\n\n' +
+      '**Nguyên lý:** Nhìn vào ảnh Exhibit 1, `storage3` là loại tài khoản **Premium** (Performance = Premium). Các bản ghi nhật ký Audit của Azure SQL được ghi dưới định dạng `Append Blobs`. Trong khi đó, tài khoản StorageV2 Premium (thường là Page Blobs) **không hỗ trợ** ghi Append Blobs.\n\n' +
+      '**Kiến thức đi thi:** Hãy nhớ quy tắc vàng: Microsoft **KHÔNG HỖ TRỢ** dùng tài khoản Premium Storage làm đích đến lưu trữ Audit logs cho Azure SQL Database. Do đó, bạn không thể chọn storage3 làm đích đến được.',
+  },
+  {
+    id: 56,
+    verify: 'Which of the following will happen if when a faulty SQL statement is generate',
+    correct: ['Vulnerability to SQL injection alert is triggered.'],
+    answer: 'Vulnerability to SQL injection alert is triggered.',
+    note:
+      '**Bộ đề gốc đánh dấu sai.** Đáp án gốc chọn "Potential SQL injection", nhưng đáp án chuẩn theo Microsoft Docs phải là **"Vulnerability to SQL injection"**.\n\n' +
+      '**Nguyên lý:** Advanced Threat Protection (hiện gọi là Microsoft Defender for SQL) phân biệt rõ 2 loại cảnh báo này:\n' +
+      '1. **Vulnerability to SQL injection (Lỗ hổng):** Kích hoạt khi ứng dụng sinh ra các câu lệnh SQL bị lỗi cú pháp (faulty SQL statements). Kẻ tấn công thường cố tình nhập các ký tự rác (như dấu nháy đơn `\'`) để làm câu lệnh SQL bị lỗi, từ đó dò xem ứng dụng có lỗ hổng hay không.\n' +
+      '2. **Potential SQL injection (Đang bị tấn công):** Chỉ kích hoạt khi hệ thống thực sự bắt quả tang một mã độc SQL Injection đang được thực thi (active exploit).\n\n' +
+      'Đề bài chỉ dừng ở mức dò la bằng "faulty SQL statement" (câu lệnh SQL bị lỗi), do đó nó thuộc trường hợp cảnh báo Lỗ hổng (Vulnerability).',
+  },
 ];
