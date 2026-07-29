@@ -23,6 +23,12 @@
  * Lưu ý: `id` được đánh theo thứ tự xuất hiện trong README gốc. Nếu upstream
  * chèn thêm câu ở giữa, id sẽ lệch — khi đó `verify` sẽ không khớp và app in
  * cảnh báo ra Console thay vì âm thầm sửa sai câu.
+ *
+ * TỰ ĐỘNG PUSH: mỗi lần file này được sửa qua Claude Code, hook PostToolUse
+ * trong .claude/settings.json gọi `sync-corrections.js` để tự commit và push
+ * lên origin/main. Nếu bạn sửa bằng editor khác, chạy tay:
+ *
+ *     node sync-corrections.js --force
  * ==========================================================================*/
 
 window.CORRECTIONS = [
