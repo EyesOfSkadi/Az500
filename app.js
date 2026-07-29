@@ -110,6 +110,7 @@
     const { mode = 'browse', picked = new Set(), revealed = true, terms = [], onPick } = opts;
     const card = el('div', 'card');
     card.dataset.qid = q.id;
+    if (mode === 'browse') card.id = 'q' + q.id;
     if (mode === 'browse' && !revealed) card.classList.add('answers-hidden');
 
     const head = el('div', 'q-head');
@@ -240,12 +241,101 @@
     $('#listEmpty').classList.toggle('hidden', filtered.length > 0);
     $('#loadMore').classList.toggle('hidden', listEl.children.length >= filtered.length);
     $('#loadMore').textContent = `Tải thêm… (còn ${filtered.length - listEl.children.length})`;
-    $('#browseMeta').innerHTML =
+    $('#browseStats').innerHTML =
       `Hiển thị <b>${listEl.children.length}</b>/<b>${filtered.length}</b> câu` +
       (filtered.length !== QS.length ? ` (lọc từ ${QS.length})` : '') +
       ` · ⭐ ${starred.size} đã đánh dấu`;
     $('#clearSearch').classList.toggle('hidden', !$('#search').value);
   }
+
+  /* ---------------- nhảy tới một câu bất kỳ ----------------
+     Danh sách được phân trang 25 câu/lần, nên phải render tới vị trí của câu
+     đó trước khi cuộn. Nếu câu đang bị bộ lọc/từ khoá loại ra thì xoá lọc. */
+  let flashTimer;
+  function jumpTo(rawId) {
+    const id = parseInt(String(rawId).replace(/[^0-9]/g, ''), 10);
+    if (!id) return false;
+    const q = QS.find((x) => x.id === id);
+    if (!q) {
+      notice(`Không có câu #${id} — chỉ có câu 1 đến ${QS.length}.`, true);
+      return false;
+    }
+
+    switchTab('browse');
+
+    // Câu bị lọc mất → xoá từ khoá và bộ lọc để chắc chắn tìm thấy
+    let cleared = false;
+    if (!filtered.includes(q)) {
+      if ($('#search').value || $('#filterSelect').value !== 'all') {
+        $('#search').value = '';
+        $('#filterSelect').value = 'all';
+        cleared = true;
+      }
+      renderBrowse();
+    }
+
+    const idx = filtered.indexOf(q);
+    if (idx < 0) { notice(`Không tìm được câu #${id}.`, true); return false; }
+
+    // Render thêm cho đủ tới vị trí cần
+    if (idx >= listEl.children.length) {
+      shown = Math.max(shown, idx + PAGE);
+      renderBrowse(false);
+    }
+
+    const card = listEl.querySelector(`[data-qid="${id}"]`);
+    if (!card) { notice(`Không hiển thị được câu #${id}.`, true); return false; }
+
+    // Ảnh dùng lazy-load và không khai báo kích thước, nên khi ảnh phía trên
+    // tải xong thì layout dịch và câu đích trôi khỏi tầm nhìn. Cuộn lại vài
+    // lần trong ~1,2s để bám đúng vị trí.
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    [200, 500, 1200].forEach((ms) => setTimeout(() => {
+      if (!card.isConnected) return;
+      const top = card.getBoundingClientRect().top;
+      const target = window.innerHeight / 2 - card.offsetHeight / 2;
+      if (Math.abs(top - Math.max(80, target)) > 120) {
+        card.scrollIntoView({ behavior: 'auto', block: 'center' });
+      }
+    }, ms));
+
+    listEl.querySelectorAll('.card.flash').forEach((c) => c.classList.remove('flash'));
+    card.classList.add('flash');
+    clearTimeout(flashTimer);
+    flashTimer = setTimeout(() => card.classList.remove('flash'), 2000);
+
+    history.replaceState(null, '', '#q' + id);
+    notice(`Đã tới câu #${id}${cleared ? ' (đã xoá bộ lọc để tìm thấy câu này)' : ''}.`);
+    return true;
+  }
+
+  function notice(msg, isError) {
+    const box = $('#jumpNotice');
+    box.textContent = msg;
+    box.className = 'jump-notice' + (isError ? ' err' : '');
+    clearTimeout(notice._t);
+    notice._t = setTimeout(() => { box.textContent = ''; box.className = 'jump-notice'; }, 4000);
+  }
+
+  const jumpInput = $('#jumpTo');
+  const doJump = () => { if (jumpTo(jumpInput.value)) jumpInput.value = ''; };
+  $('#jumpBtn').onclick = doJump;
+  jumpInput.onkeydown = (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); doJump(); }
+    else if (e.key === 'Escape') { jumpInput.value = ''; jumpInput.blur(); }
+  };
+
+  // Hỗ trợ URL dạng .../index.html#q32 — mở trực tiếp tới câu đó
+  function jumpFromHash() {
+    const m = /^#q(\d+)$/.exec(location.hash);
+    if (m) jumpTo(m[1]);
+    return !!m;
+  }
+  window.addEventListener('hashchange', jumpFromHash);
+  // Trình duyệt tự phục hồi vị trí cuộn SAU khi script chạy, ghi đè cú nhảy
+  // của ta. Tắt phục hồi và nhảy lại lúc 'load' khi layout đã ổn định.
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.addEventListener('load', () => { jumpFromHash(); });
 
   let t;
   $('#search').oninput = () => { clearTimeout(t); t = setTimeout(() => renderBrowse(), 140); };
@@ -344,7 +434,10 @@
       (done ? ` · Tỷ lệ <b>${Math.round(prac.ok / done * 100)}%</b>` : '') +
       ` <button class="pill" id="pracReshuffle" style="margin-left:8px">🔀 Trộn lại</button>` +
       ` <button class="pill" id="pracStarredOnly" style="margin-left:4px">⭐ Chỉ câu đánh dấu</button>` +
-      ` <button class="pill" id="pracWrongOnly" style="margin-left:4px">Luyện câu từng sai</button>`;
+      ` <button class="pill" id="pracWrongOnly" style="margin-left:4px">Luyện câu từng sai</button>` +
+      ` <span class="jump-wrap" style="margin-left:4px"><span class="hash">#</span>` +
+      `<input id="pracJump" type="text" inputmode="numeric" autocomplete="off" placeholder="Tới câu"` +
+      ` title="Nhập số câu rồi nhấn Enter"></span>`;
     $('#pracReshuffle').onclick = () => pracStart(QS);
     $('#pracStarredOnly').onclick = () => {
       const pool = QS.filter((q) => starred.has(q.id));
@@ -355,6 +448,25 @@
       const pool = QS.filter((q) => stats[q.id] && stats[q.id].bad);
       if (!pool.length) return alert('Chưa có câu nào trả lời sai.');
       pracStart(pool);
+    };
+
+    // Nhảy tới một câu trong bộ đang luyện (bộ đã trộn nên phải tìm theo id)
+    const pj = $('#pracJump');
+    pj.onkeydown = (e) => {
+      if (e.key === 'Escape') { pj.value = ''; pj.blur(); return; }
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const id = parseInt(pj.value.replace(/[^0-9]/g, ''), 10);
+      if (!id) return;
+      const at = prac.order.findIndex((x) => x.id === id);
+      if (at < 0) {
+        alert(`Câu #${id} không nằm trong bộ đang luyện.\n\n` +
+          `Bộ hiện tại chỉ có ${prac.order.length} câu. Bấm "🔀 Trộn lại" để luyện toàn bộ ` +
+          `${QS.length} câu, hoặc dùng ô "Tới câu" ở tab Tra cứu.`);
+        return;
+      }
+      pj.value = '';
+      pracGo(at);
     };
   }
 
@@ -540,6 +652,13 @@
     }
     const typing = /input|textarea|select/i.test(e.target.tagName);
     if (e.key === '/' && !typing) { e.preventDefault(); switchTab('browse'); $('#search').focus(); return; }
+    if (e.key.toLowerCase() === 'g' && !typing) {
+      e.preventDefault();
+      switchTab('browse');
+      $('#jumpTo').focus();
+      $('#jumpTo').select();
+      return;
+    }
     if (typing) return;
 
     if (tab === 'practice') {
@@ -574,4 +693,5 @@
   });
 
   renderBrowse();
+  jumpFromHash();
 })();

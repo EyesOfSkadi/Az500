@@ -38,9 +38,18 @@
       <option value="corrected">⚠ Đã sửa đáp án</option>
       <option value="wrong">Từng trả lời sai</option>
     </select>
+    <div class="jump-wrap">
+      <span class="hash">#</span>
+      <input id="jumpTo" type="text" inputmode="numeric" autocomplete="off"
+             placeholder="Tới câu" title="Nhập số câu rồi nhấn Enter (phím tắt: G)">
+      <button class="pill" id="jumpBtn" title="Nhảy tới câu">Đi</button>
+    </div>
     <button class="pill" id="toggleAnswers" aria-pressed="true">Hiện đáp án</button>
   </div>
-  <div class="meta-line" id="browseMeta"></div>
+  <div class="meta-line" id="browseMeta">
+    <span id="browseStats"></span>
+    <span id="jumpNotice" class="jump-notice"></span>
+  </div>
 </header>
 
 <main>

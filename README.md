@@ -25,6 +25,7 @@ Nhấn đôi vào `index.html` — xong. Không cần server, không cần npm i
 | Phím | Tác dụng |
 |---|---|
 | `/` | Nhảy tới ô tìm kiếm |
+| `G` | Nhảy tới ô "Tới câu" |
 | `1`–`6` | Chọn đáp án A–F |
 | `Enter` | Kiểm tra / sang câu tiếp |
 | `←` `→` | Chuyển câu |
@@ -32,6 +33,28 @@ Nhấn đôi vào `index.html` — xong. Không cần server, không cần npm i
 | `Esc` | Đóng ảnh phóng to |
 
 Bấm vào hình ảnh bất kỳ để xem phóng to.
+
+## Nhảy tới một câu bất kỳ
+
+Không cần cuộn từ đầu để tới câu ở giữa hoặc cuối danh sách. Có ba cách:
+
+- **Ô "Tới câu"** trên thanh công cụ ở tab Tra cứu — nhập số câu rồi nhấn Enter.
+  Phím tắt `G` mở ô này từ bất kỳ tab nào. Câu đích được cuộn vào giữa màn hình và
+  **nháy viền xanh** 2 giây để bạn nhận ra ngay.
+- **URL trực tiếp** — thêm `#q32` vào cuối địa chỉ, ví dụ `index.html#q32`. Dùng để
+  đánh dấu trang (bookmark) hoặc gửi link tới một câu cụ thể. URL cũng tự cập nhật
+  mỗi lần bạn nhảy, nên có thể copy từ thanh địa chỉ.
+- **Ô "Tới câu" ở tab Luyện tập** — nhảy tới câu đó trong bộ đang luyện (bộ đã trộn
+  nên vị trí khác số câu). Nếu câu không nằm trong bộ hiện tại, app sẽ nói rõ.
+
+Vài chi tiết đã xử lý:
+
+- Danh sách phân trang 25 câu/lần, nên app **tự render thêm** cho đủ tới vị trí cần
+  trước khi cuộn — bạn không phải bấm "Tải thêm" nhiều lần.
+- Nếu câu đích đang bị từ khoá tìm kiếm hoặc bộ lọc loại ra, app **tự xoá lọc** và
+  thông báo, thay vì báo "không tìm thấy".
+- Hình ảnh dùng lazy-load nên layout có thể dịch khi ảnh phía trên tải xong; app tự
+  chỉnh lại vị trí cuộn trong ~1,2 giây đầu để câu đích không bị trôi khỏi tầm nhìn.
 
 ## Ghi chú về nội dung
 
@@ -82,6 +105,11 @@ Các câu đã sửa hiện tại:
 | Câu | Vấn đề |
 |---|---|
 | #32 | Đáp án gốc chọn phương án có `Global administrator` — vi phạm least privilege, và bỏ mất bước tạo management group. Thực tế không phương án nào đúng hoàn toàn; đã chuyển sang phương án gần đúng nhất kèm ghi chú đáp án đúng. |
+| #46 | Đáp án gốc đánh dấu `Yes`, đúng phải là `No`. |
+| #56 | Đáp án gốc chọn tên alert sai; đã đổi sang tên alert đúng theo tài liệu Microsoft. |
+
+> Bảng này cần cập nhật tay khi bạn thêm correction mới. Số câu đã sửa thực tế luôn
+> xem được trong app bằng bộ lọc **⚠ Đã sửa đáp án**, hoặc ở Console lúc mở trang.
 
 ## Cập nhật câu hỏi mới từ nguồn
 

@@ -154,6 +154,41 @@ button.pill.primary { background: var(--accent); border-color: var(--accent); co
 button.pill.primary:hover { filter: brightness(1.08); }
 button.pill:disabled { opacity: .45; cursor: not-allowed; }
 
+/* ---------- Jump to question ---------- */
+.jump-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  position: relative;
+}
+.jump-wrap .hash {
+  position: absolute;
+  left: 9px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 13px;
+  pointer-events: none;
+}
+.jump-wrap input {
+  width: 96px;
+  padding: 8px 8px 8px 22px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  outline: none;
+  font-size: 14px;
+}
+.jump-wrap input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+.jump-notice { color: var(--accent); font-weight: 600; }
+.jump-notice.err { color: var(--bad); }
+
+@keyframes cardFlash {
+  0%, 100% { box-shadow: var(--shadow); border-color: var(--border); }
+  15%, 60%  { box-shadow: 0 0 0 3px var(--accent-soft), var(--shadow); border-color: var(--accent); }
+}
+.card.flash { animation: cardFlash 2s ease; }
+
 .meta-line {
   max-width: 1080px;
   margin: 0 auto;
